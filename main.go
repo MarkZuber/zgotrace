@@ -20,10 +20,7 @@ func maxParallelism() int {
 	return numCPU
 }
 
-func main() {
-	kingpin.Parse()
-	fmt.Printf("%v\n", *verbose)
-
+func doRender() {
 	numThreads := maxParallelism()
 	imageWidth := 10
 	imageHeight := 5
@@ -36,4 +33,12 @@ func main() {
 	var render = newRenderer(renderConfig)
 	var pixelBuffer = newPixelBuffer(imageWidth, imageHeight)
 	render.Render(pixelBuffer, scene, renderConfig)
+}
+
+func main() {
+	kingpin.Parse()
+	fmt.Printf("%v\n", *verbose)
+
+	glmain()
+	// doRender()
 }
