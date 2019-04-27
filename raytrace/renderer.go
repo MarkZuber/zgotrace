@@ -1,4 +1,4 @@
-package main
+package raytrace
 
 import (
 	"fmt"
@@ -13,22 +13,22 @@ type pixelJob struct {
 
 type pixelResult struct {
 	job   pixelJob
-	color colorVector
+	color ColorVector
 }
 
-type renderer struct {
+type Renderer struct {
 	jobs    chan pixelJob
 	results chan pixelResult
-	config  *renderConfig
+	config  *RenderConfig
 }
 
-func newRenderer(config *renderConfig) *renderer {
+func NewRenderer(config *RenderConfig) *Renderer {
 	var jobs = make(chan pixelJob, 1000)
 	var results = make(chan pixelResult, 1000)
-	return &renderer{jobs, results, config}
+	return &Renderer{jobs, results, config}
 }
 
-func (r *renderer) Render(pixelBuffer *pixelBuffer, scene *scene, renderConfig *renderConfig) {
+func (r *Renderer) Render(rayTracer RayTracer, pixelBuffer *PixelBuffer, scene Scene, renderConfig *RenderConfig) {
 
 	// fire progress callback that we've started
 
@@ -39,6 +39,7 @@ func (r *renderer) Render(pixelBuffer *pixelBuffer, scene *scene, renderConfig *
 
 	if renderConfig.IsTwoPhase() {
 		r.renderMultithread(
+			rayTracer,
 			pixelBuffer,
 			camera,
 			world,
@@ -48,6 +49,7 @@ func (r *renderer) Render(pixelBuffer *pixelBuffer, scene *scene, renderConfig *
 	}
 
 	r.renderMultithread(
+		rayTracer,
 		pixelBuffer,
 		camera,
 		world,
@@ -56,7 +58,7 @@ func (r *renderer) Render(pixelBuffer *pixelBuffer, scene *scene, renderConfig *
 		backgroundFunc)
 }
 
-func (r *renderer) enqueuePixels(width int, height int) {
+func (r *Renderer) enqueuePixels(width int, height int) {
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			job := pixelJob{x, y}
@@ -66,15 +68,15 @@ func (r *renderer) enqueuePixels(width int, height int) {
 	close(r.jobs)
 }
 
-func (r *renderer) calcResults(pixelBuffer *pixelBuffer, done chan bool) {
+func (r *Renderer) calcResults(pixelBuffer *PixelBuffer, done chan bool) {
 	for result := range r.results {
-		fmt.Printf("SetPixelColor (%v, %v) -> (%v, %v, %v)\n", result.job.x, result.job.y, result.color.r, result.color.g, result.color.b)
+		fmt.Printf("SetPixelColor (%v, %v) -> (%v, %v, %v)\n", result.job.x, result.job.y, result.color.R(), result.color.G(), result.color.B())
 		pixelBuffer.SetPixelColor(result.job.x, result.job.y, result.color)
 	}
 	done <- true
 }
 
-func (r *renderer) pixelWorker(rayTracer *simpleTracer, wg *sync.WaitGroup) {
+func (r *Renderer) pixelWorker(rayTracer RayTracer, wg *sync.WaitGroup) {
 	for job := range r.jobs {
 		color := rayTracer.GetPixelColor(job.x, job.y)
 		result := pixelResult{job, color}
@@ -83,7 +85,7 @@ func (r *renderer) pixelWorker(rayTracer *simpleTracer, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func (r *renderer) createWorkerPool(rayTracer *simpleTracer, numWorkers int) {
+func (r *Renderer) createWorkerPool(rayTracer RayTracer, numWorkers int) {
 	var wg sync.WaitGroup
 	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
@@ -93,17 +95,18 @@ func (r *renderer) createWorkerPool(rayTracer *simpleTracer, numWorkers int) {
 	close(r.results)
 }
 
-func (r *renderer) renderMultithread(
-	pixelBuffer *pixelBuffer,
-	camera *camera,
-	world *hitable,
-	lightHitable *hitable,
-	renderConfig *renderConfig,
-	backgroundFunc backgroundFunc) {
+func (r *Renderer) renderMultithread(
+	rayTracer RayTracer,
+	pixelBuffer *PixelBuffer,
+	camera Camera,
+	world Hitable,
+	lightHitable Hitable,
+	renderConfig *RenderConfig,
+	backgroundFunc BackgroundFunc) {
 
 	startTime := time.Now()
 
-	rayTracer := newSimpleTracer()
+	rayTracer.Configure(pixelBuffer.Width(), pixelBuffer.Height(), camera, world, lightHitable, renderConfig, backgroundFunc)
 
 	go r.enqueuePixels(pixelBuffer.Width(), pixelBuffer.Height())
 	done := make(chan bool)

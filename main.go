@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"runtime"
-
+	"github.com/markzuber/zgotrace/raytrace"
+	"github.com/markzuber/zgotrace/raytrace/scenes"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -11,34 +10,27 @@ var (
 	verbose = kingpin.Flag("debug", "Enable debug mode.").Short('v').Bool()
 )
 
-func maxParallelism() int {
-	maxProcs := runtime.GOMAXPROCS(0)
-	numCPU := runtime.NumCPU()
-	if maxProcs < numCPU {
-		return maxProcs
-	}
-	return numCPU
-}
+func main() {
+	kingpin.Parse()
+	// fmt.Printf("%v\n", *verbose)
 
-func doRender() {
+	// glmain()
+	// doRender()
+
+	ebRen := newEbitenRender(320, 240, 5.0)
+
 	numThreads := maxParallelism()
-	imageWidth := 10
-	imageHeight := 5
 	isTwoPhase := false
 	maxDepth := 50
 	numSamplesPerPixel := 10
 
-	var renderConfig = NewRenderConfig(numThreads, maxDepth, numSamplesPerPixel, isTwoPhase)
-	var scene = createCornellBoxScene()
-	var render = newRenderer(renderConfig)
-	var pixelBuffer = newPixelBuffer(imageWidth, imageHeight)
-	render.Render(pixelBuffer, scene, renderConfig)
-}
+	var renderConfig = raytrace.NewRenderConfig(numThreads, maxDepth, numSamplesPerPixel, isTwoPhase)
+	var scene = scenes.CreateCornellBoxScene()
 
-func main() {
-	kingpin.Parse()
-	fmt.Printf("%v\n", *verbose)
+	// var rayTracer = raytrace.NewSimpleTracer()
+	var rayTracer = raytrace.NewMonteCarloTracer()
 
-	glmain()
-	// doRender()
+	go ebRen.doRender(rayTracer, renderConfig, scene)
+
+	ebRen.startDisplay()
 }
