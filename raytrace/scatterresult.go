@@ -12,7 +12,7 @@ func NewScatterResult(isScattered bool, attenuation ColorVector, specularRay *Ra
 }
 
 func NewFalseScatterResult() *ScatterResult {
-	return NewScatterResult(false, NewColorVector(0, 0, 0), nil, nil)
+	return NewScatterResult(false, NewColorVector(0.0, 0.0, 0.0), nil, nil)
 }
 
 func (r *ScatterResult) IsScattered() bool {

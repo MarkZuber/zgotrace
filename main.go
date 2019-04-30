@@ -17,9 +17,9 @@ func main() {
 	// glmain()
 	// doRender()
 
-	ebRen := newEbitenRender(320, 240, 5.0)
+	ebRen := newEbitenRender(600, 600, 2.0)
 
-	numThreads := maxParallelism()
+	numThreads := 1 // maxParallelism()
 	isTwoPhase := false
 	maxDepth := 50
 	numSamplesPerPixel := 10

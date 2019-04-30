@@ -1,7 +1,6 @@
 package hitables
 
 import (
-	"fmt"
 	"math/rand"
 	"sort"
 
@@ -55,14 +54,11 @@ func NewBvhNode(hitables []raytrace.Hitable, time0 float64, time1 float64) *BvhN
 
 func (s *BvhNode) Hit(ray *raytrace.Ray, tMin float64, tMax float64) *raytrace.HitRecord {
 
-	fmt.Printf("BvhNode Hit(): %#v\n", ray)
+	// fmt.Printf("BvhNode Hit(): %#v\n", ray)
 
 	if !s.box.Hit(ray, tMin, tMax) {
-		fmt.Println("returning nil from bvhnode.hit")
 		return nil
 	}
-
-	fmt.Println("THE BOX WAS HIT")
 
 	hrLeft := s.left.Hit(ray, tMin, tMax)
 	hrRight := s.right.Hit(ray, tMin, tMax)

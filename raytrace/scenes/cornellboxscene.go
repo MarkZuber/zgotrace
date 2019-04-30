@@ -30,7 +30,7 @@ func (s *cornellBoxScene) GetCamera(width int, height int) raytrace.Camera {
 	lookFrom := mgl64.Vec3{278.0, 278.0, -800.0}
 	lookAt := mgl64.Vec3{278.0, 278.0, 0.0}
 	distToFocus := 10.0
-	aperture := 0.2
+	aperture := 0.0
 
 	return cameras.NewNormalCamera(
 		lookFrom,
@@ -43,17 +43,17 @@ func (s *cornellBoxScene) GetCamera(width int, height int) raytrace.Camera {
 }
 
 func (s *cornellBoxScene) GetWorld() raytrace.Hitable {
-	red := materials.NewLambertianMaterial(textures.NewColorTexture(raytrace.NewColorVector(0.65, 0.05, 0.05)))
+	// red := materials.NewLambertianMaterial(textures.NewColorTexture(raytrace.NewColorVector(0.65, 0.05, 0.05)))
 	white := materials.NewLambertianMaterial(textures.NewColorTexture(raytrace.NewColorVector(0.73, 0.73, 0.73)))
 	green := materials.NewLambertianMaterial(textures.NewColorTexture(raytrace.NewColorVector(0.12, 0.45, 0.15)))
 	// aluminum := materials.NewMetalMaterial(raytrace.NewColorVector(0.8, 0.85, 0.88), 0.0)
 
 	list := []raytrace.Hitable{
-		hitables.NewFlipNormals(hitables.NewYzRect(0, 555, 0, 555, 555, green)),
-		hitables.NewYzRect(0, 555, 0, 555, 0, red),
-		hitables.NewFlipNormals(s.light),
-		hitables.NewFlipNormals(hitables.NewXzRect(0, 555, 0, 555, 555, white)),
-		hitables.NewXzRect(0, 555, 0, 555, 0, white),
+		hitables.NewFlipNormals(hitables.NewYzRect(0.0, 555.0, 0.0, 555.0, 555.0, green)),
+		// hitables.NewYzRect(0.0, 555.0, 0.0, 555.0, 0.0, red),
+		// hitables.NewFlipNormals(s.light),
+		hitables.NewFlipNormals(hitables.NewXzRect(0.0, 555.0, 0.0, 555.0, 555.0, white)),
+		hitables.NewXzRect(0.0, 555.0, 0.0, 555.0, 0.0, white),
 		hitables.NewFlipNormals(hitables.NewXyRect(0, 555, 0, 555, 555, white)),
 		hitables.NewTranslate(hitables.NewRotateY(hitables.NewBox(mgl64.Vec3{0, 0, 0}, mgl64.Vec3{165, 330, 165}, white), 15), mgl64.Vec3{265, 0, 295}),
 		s.glassSphere,
@@ -68,6 +68,7 @@ func (s *cornellBoxScene) GetLightHitable() raytrace.Hitable {
 
 func (s *cornellBoxScene) GetBackgroundFunc() raytrace.BackgroundFunc {
 	return func() raytrace.ColorVector {
-		return raytrace.NewColorVector(0.77, 0.22, 0.11)
+		return raytrace.NewColorVector(0.12, 0.34, 0.56)
+		// return raytrace.NewColorVector(0.0, 0.0, 0.0)
 	}
 }

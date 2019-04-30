@@ -70,7 +70,7 @@ func (r *Renderer) enqueuePixels(width int, height int) {
 
 func (r *Renderer) calcResults(pixelBuffer *PixelBuffer, done chan bool) {
 	for result := range r.results {
-		fmt.Printf("SetPixelColor (%v, %v) -> (%v, %v, %v)\n", result.job.x, result.job.y, result.color.R(), result.color.G(), result.color.B())
+		// fmt.Printf("SetPixelColor (%v, %v) -> (%v, %v, %v)\n", result.job.x, result.job.y, result.color.R(), result.color.G(), result.color.B())
 		pixelBuffer.SetPixelColor(result.job.x, result.job.y, result.color)
 	}
 	done <- true

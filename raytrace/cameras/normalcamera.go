@@ -36,7 +36,7 @@ func NewNormalCamera(
 	w := vectorextensions.ToUnitVector(lookFrom.Sub(lookAt))
 	u := vectorextensions.ToUnitVector(up.Cross(w))
 	v := w.Cross(u)
-	lowerLeftCorner := origin.Sub(u.Mul(halfWidth * focusDistance))
+	lowerLeftCorner := origin.Sub(u.Mul(halfWidth * focusDistance)).Sub(v.Mul(halfHeight * focusDistance)).Sub(w.Mul(focusDistance))
 	horizontal := u.Mul(2.0 * halfWidth * focusDistance)
 	vertical := v.Mul(2.0 * halfHeight * focusDistance)
 

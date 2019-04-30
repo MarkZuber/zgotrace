@@ -15,7 +15,8 @@ func NewColorVector(r float64, g float64, b float64) ColorVector {
 }
 
 func (c ColorVector) RGBA() (r, g, b, a uint32) {
-	return uint32(c.R() * 0xffff), uint32(c.G() * 0xffff), uint32(c.B() * 0xffff), 0xffff
+	c2 := c.Clamp()
+	return uint32(c2.R() * 0xffff), uint32(c2.G() * 0xffff), uint32(c2.B() * 0xffff), 0xffff
 }
 
 func (c ColorVector) R() float64 {
@@ -48,4 +49,33 @@ func (c ColorVector) Add(other ColorVector) ColorVector {
 
 func (c ColorVector) ApplyGamma2() ColorVector {
 	return NewColorVector(math.Sqrt(c.R()), math.Sqrt(c.G()), math.Sqrt(c.B()))
+}
+
+func (c ColorVector) Clamp() ColorVector {
+	r := c.R()
+	g := c.G()
+	b := c.B()
+
+	if r < 0.0 {
+		r = 0.0
+	}
+	if r > 1.0 {
+		r = 1.0
+	}
+
+	if g < 0.0 {
+		g = 0.0
+	}
+	if g > 1.0 {
+		g = 1.0
+	}
+
+	if b < 0.0 {
+		b = 0.0
+	}
+	if b > 1.0 {
+		b = 1.0
+	}
+
+	return NewColorVector(r, g, b)
 }

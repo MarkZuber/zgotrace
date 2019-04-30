@@ -1,7 +1,6 @@
 package vectorextensions
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 
@@ -17,10 +16,8 @@ func GetRandomInUnitSphere() mgl64.Vec3 {
 
 	for {
 		randVec := mgl64.Vec3{rand.Float64(), rand.Float64(), rand.Float64()}
-		fmt.Printf("randVec: %v\n", randVec)
 		pv = randVec.Mul(2.0).Sub(mgl64.Vec3{1, 1, 1})
 		if pv.LenSqr() < 1.0 {
-			fmt.Printf("pv: %v\n", randVec)
 			return pv
 		}
 	}
@@ -39,15 +36,15 @@ func DivScalar(vec mgl64.Vec3, val float64) mgl64.Vec3 {
 }
 
 func UnitY() mgl64.Vec3 {
-	return mgl64.Vec3{0, 1, 0}
+	return mgl64.Vec3{0.0, 1.0, 0.0}
 }
 
 func UnitX() mgl64.Vec3 {
-	return mgl64.Vec3{1, 0, 0}
+	return mgl64.Vec3{1.0, 0.0, 0.0}
 }
 
 func UnitZ() mgl64.Vec3 {
-	return mgl64.Vec3{0, 0, 1}
+	return mgl64.Vec3{0.0, 0.0, 1.0}
 }
 
 func Reflect(vec mgl64.Vec3, other mgl64.Vec3) mgl64.Vec3 {
@@ -66,7 +63,7 @@ func Refract(vec mgl64.Vec3, normal mgl64.Vec3, niOverNt float64) mgl64.Vec3 {
 		return MulScalar(unitVec.Sub(MulScalar(normal, dt)), niOverNt).Sub(MulScalar(normal, math.Sqrt(discriminant)))
 	}
 
-	return mgl64.Vec3{0, 0, 0}
+	return mgl64.Vec3{0.0, 0.0, 0.0}
 }
 
 func IsVectorZero(vec mgl64.Vec3) bool {

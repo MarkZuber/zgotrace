@@ -1,7 +1,6 @@
 package raytrace
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/go-gl/mathgl/mgl64"
@@ -39,7 +38,6 @@ func (aabb *AABB) Hit(ray *Ray, tMin float64, tMax float64) bool {
 			tMax = t1
 		}
 		if tMax <= tMin {
-			fmt.Printf("tmax (%v)  tmin (%v)", tMax, tMin)
 			return false
 		}
 	}
