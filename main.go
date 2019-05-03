@@ -17,14 +17,13 @@ func main() {
 	// glmain()
 	// doRender()
 
-	ebRen := newEbitenRender(200, 200, 4.0)
+	ebRen := newEbitenRender(600, 600, 2.0)
 
-	numThreads := 1 // maxParallelism()
 	isTwoPhase := false
 	maxDepth := 50
-	numSamplesPerPixel := 1000
+	numSamplesPerPixel := 10000
 
-	var renderConfig = raytrace.NewRenderConfig(numThreads, maxDepth, numSamplesPerPixel, isTwoPhase)
+	var renderConfig = raytrace.NewRenderConfig(maxDepth, numSamplesPerPixel, isTwoPhase)
 	var scene = scenes.CreateCornellBoxScene()
 
 	// var rayTracer = raytrace.NewSimpleTracer()
