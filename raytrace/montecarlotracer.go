@@ -1,7 +1,6 @@
 package raytrace
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 )
@@ -59,16 +58,16 @@ func (t *MonteCarloTracer) GetPixelColor(x int, y int) ColorVector {
 
 		color = color.DivScalar(perPixelFloat)
 	} else {
-		color = t.getRayColor(t.camera.GetRay(xfloat/float64(t.imageWidth), yfloat/float64(t.imageHeight)), t.world, 0)
+		color = t.getRayColor(t.camera.GetRay(xfloat/widthFloat, yfloat/heightFloat), t.world, 0)
 	}
 
 	if color.R() > 1.0 || color.G() > 1.0 || color.B() > 1.0 {
-		fmt.Printf("color will need clamp: (%v, %v) -> %v\n", x, y, color)
+		// fmt.Printf("color will need clamp: (%v, %v) -> %v\n", x, y, color)
 	}
 
 	color = color.ApplyGamma2()
-	fmt.Printf("FINAL COLOR: (%v, %v) -> %v\n", x, y, color)
-	fmt.Println("--------------------------------------------------")
+	// fmt.Printf("FINAL COLOR: (%v, %v) -> %v\n", x, y, color)
+	// fmt.Println("--------------------------------------------------")
 
 	return color
 }
@@ -80,7 +79,7 @@ func (t *MonteCarloTracer) getRayColor(ray *Ray, world Hitable, depth int) Color
 	if hr != nil {
 		// fmt.Printf("WE GOT A HIT!\n")
 		emitted := hr.Material().Emitted(ray, hr, hr.UvCoords(), hr.P())
-		fmt.Printf("emitted: %v\n", emitted)
+		// fmt.Printf("emitted: %v\n", emitted)
 
 		if depth < t.renderConfig.maxDepth {
 			scatterResult := hr.Material().Scatter(ray, hr)
@@ -89,7 +88,7 @@ func (t *MonteCarloTracer) getRayColor(ray *Ray, world Hitable, depth int) Color
 
 					subcolor := t.getRayColor(scatterResult.SpecularRay(), world, depth+1)
 					specularColor := scatterResult.Attenuation().Mul(subcolor)
-					fmt.Printf("subcolor: %v  spec color: %v\n", subcolor, specularColor)
+					// fmt.Printf("subcolor: %v  spec color: %v\n", subcolor, specularColor)
 					return specularColor
 				}
 				p0 := NewHitablePdf(t.lightHitable, hr.P())
@@ -108,7 +107,7 @@ func (t *MonteCarloTracer) getRayColor(ray *Ray, world Hitable, depth int) Color
 				depthRayColor := t.getRayColor(scattered, world, depth+1)
 				recurseColor := ((scatterResult.Attenuation().Mul(depthRayColor).MulScalar(scatteringPdf)).DivScalar(pdfValue))
 				emittedPlusRecurseColor := emitted.Add(recurseColor)
-				fmt.Printf("depthRayColor: %v recurseColor: %v  attenuation: %v  scatteringPdf: %v  pdfValue: %v emittedPlusRecurseColor: %v\n", depthRayColor, recurseColor, scatterResult.Attenuation(), scatteringPdf, pdfValue, emittedPlusRecurseColor)
+				// fmt.Printf("depthRayColor: %v recurseColor: %v  attenuation: %v  scatteringPdf: %v  pdfValue: %v emittedPlusRecurseColor: %v\n", depthRayColor, recurseColor, scatterResult.Attenuation(), scatteringPdf, pdfValue, emittedPlusRecurseColor)
 				return emittedPlusRecurseColor
 			}
 		}

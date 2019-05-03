@@ -20,7 +20,7 @@ func NewRotateY(hitable raytrace.Hitable, angle float64) raytrace.Hitable {
 	radians := math.Pi / 180.0 * angle
 	sinTheta := math.Sin(radians)
 	cosTheta := math.Cos(radians)
-	box := hitable.GetBoundingBox(0, 1)
+	box := hitable.GetBoundingBox(0.0, 1.0)
 	min := []float64{math.MaxFloat64, math.MaxFloat64, math.MaxFloat64}
 	max := []float64{-math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64}
 
@@ -33,7 +33,7 @@ func NewRotateY(hitable raytrace.Hitable, angle float64) raytrace.Hitable {
 				x := (dubi * box.Max().X()) + ((1.0 - dubi) * box.Min().X())
 				y := (dubj * box.Max().Y()) + ((1.0 - dubj) * box.Min().Y())
 				z := (dubk * box.Max().Z()) + ((1.0 - dubk) * box.Min().Z())
-				newx := (cosTheta * x) * (sinTheta * z)
+				newx := (cosTheta * x) + (sinTheta * z)
 				newz := (-sinTheta * x) + (cosTheta * z)
 				tester := []float64{newx, y, newz}
 				for c := 0; c < 3; c++ {
@@ -60,7 +60,7 @@ func (s *RotateY) Hit(ray *raytrace.Ray, tMin float64, tMax float64) *raytrace.H
 	origin[0] = (s.costheta * ray.Origin().X()) - (s.sintheta * ray.Origin().Z())
 	origin[2] = (s.sintheta * ray.Origin().X()) + (s.costheta * ray.Origin().Z())
 	dir[0] = (s.costheta * ray.Direction().X()) - (s.sintheta * ray.Direction().Z())
-	dir[2] = (s.sintheta * ray.Direction().Z()) + (s.costheta * ray.Direction().Z())
+	dir[2] = (s.sintheta * ray.Direction().X()) + (s.costheta * ray.Direction().Z())
 	rotatedRay := raytrace.NewRay(mgl64.Vec3{origin[0], origin[1], origin[2]}, mgl64.Vec3{dir[0], dir[1], dir[2]})
 	hitRecord := s.hitable.Hit(rotatedRay, tMin, tMax)
 	if hitRecord == nil {

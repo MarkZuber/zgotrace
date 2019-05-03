@@ -23,8 +23,8 @@ type Renderer struct {
 }
 
 func NewRenderer(config *RenderConfig) *Renderer {
-	var jobs = make(chan pixelJob, 1000)
-	var results = make(chan pixelResult, 1000)
+	var jobs = make(chan pixelJob, 100000)
+	var results = make(chan pixelResult, 100000)
 	return &Renderer{jobs, results, config}
 }
 
