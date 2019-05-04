@@ -28,6 +28,11 @@ func NewRenderer(config *RenderConfig) *Renderer {
 	return &Renderer{jobs, results, config}
 }
 
+func (r *Renderer) resetChannels() {
+	r.jobs = make(chan pixelJob, 100000)
+	r.results = make(chan pixelResult, 100000)
+}
+
 func (r *Renderer) Render(rayTracer RayTracer, pixelBuffer *PixelBuffer, scene Scene, renderConfig *RenderConfig) {
 	camera := scene.GetCamera(pixelBuffer.Width(), pixelBuffer.Height())
 	world := scene.GetWorld()
@@ -43,6 +48,7 @@ func (r *Renderer) Render(rayTracer RayTracer, pixelBuffer *PixelBuffer, scene S
 			lightHitable,
 			NewRenderConfig(5, 1, false),
 			backgroundFunc)
+		r.resetChannels()
 	}
 
 	r.renderMultithread(

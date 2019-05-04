@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"runtime"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
@@ -43,15 +42,6 @@ func (er *ebitenRender) update(screen *ebiten.Image) error {
 	return nil
 }
 
-func maxParallelism() int {
-	maxProcs := runtime.GOMAXPROCS(0)
-	numCPU := runtime.NumCPU()
-	if maxProcs < numCPU {
-		return maxProcs
-	}
-	return numCPU
-}
-
 func (er *ebitenRender) startDisplay() {
 	if err := ebiten.Run(er.update, er.pixelBuffer.Width(), er.pixelBuffer.Height(), er.screenScale, "Zubes Ray Tracer"); err != nil {
 		log.Fatal(err)
@@ -62,4 +52,8 @@ func (er *ebitenRender) doRender(rayTracer raytrace.RayTracer, renderConfig *ray
 
 	var render = raytrace.NewRenderer(renderConfig)
 	render.Render(rayTracer, er.pixelBuffer, scene, renderConfig)
+	outFilePath := "/home/mzuber/zgo_out.png"
+	fmt.Printf("Saving image to %v ", outFilePath)
+	er.pixelBuffer.SavePng(outFilePath)
+	fmt.Println("...done")
 }

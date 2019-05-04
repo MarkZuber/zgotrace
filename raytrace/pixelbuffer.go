@@ -2,6 +2,9 @@ package raytrace
 
 import (
 	"image"
+	"image/png"
+	"log"
+	"os"
 )
 
 type PixelBuffer struct {
@@ -40,4 +43,20 @@ func (buf *PixelBuffer) SetPixelColor(x int, y int, clr ColorVector) {
 
 func (buf *PixelBuffer) GetImage() *image.RGBA {
 	return buf.img
+}
+
+func (buf *PixelBuffer) SavePng(path string) {
+	f, err := os.Create(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := png.Encode(f, buf.img); err != nil {
+		f.Close()
+		log.Fatal(err)
+	}
+
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
 }
