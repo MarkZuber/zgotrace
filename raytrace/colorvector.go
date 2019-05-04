@@ -14,6 +14,10 @@ func NewColorVector(r float64, g float64, b float64) ColorVector {
 	return ColorVector{mgl64.Vec3{r, g, b}}
 }
 
+func NewColorVectorFromRGBA(r uint32, g uint32, b uint32, a uint32) ColorVector {
+	return NewColorVector(float64(r)/float64(0xffff), float64(g)/float64(0xffff), float64(b)/float64(0xffff))
+}
+
 func (c ColorVector) RGBA() (r, g, b, a uint32) {
 	c2 := c.Clamp()
 	return uint32(c2.R() * 0xffff), uint32(c2.G() * 0xffff), uint32(c2.B() * 0xffff), 0xffff
