@@ -1,6 +1,6 @@
 package raytrace
 
-type BackgroundFunc func() ColorVector
+type BackgroundFunc func(ray *Ray) ColorVector
 
 type Scene interface {
 	GetCamera(width int, height int) Camera

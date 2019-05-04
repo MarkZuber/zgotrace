@@ -115,5 +115,5 @@ func (t *MonteCarloTracer) getRayColor(ray *Ray, world Hitable, depth int) Color
 		return emitted
 	}
 
-	return t.backgroundFunc() // todo: have this take Ray as a parameter?
+	return t.backgroundFunc(ray)
 }

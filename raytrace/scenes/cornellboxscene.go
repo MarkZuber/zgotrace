@@ -68,7 +68,7 @@ func (s *cornellBoxScene) GetLightHitable() raytrace.Hitable {
 }
 
 func (s *cornellBoxScene) GetBackgroundFunc() raytrace.BackgroundFunc {
-	return func() raytrace.ColorVector {
+	return func(ray *raytrace.Ray) raytrace.ColorVector {
 		return raytrace.NewColorVector(0.3, 0.3, 0.3)
 		// return raytrace.NewColorVector(0.0, 0.0, 0.0)
 	}

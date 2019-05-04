@@ -87,7 +87,7 @@ func (s *manySpheresScene) GetLightHitable() raytrace.Hitable {
 }
 
 func (s *manySpheresScene) GetBackgroundFunc() raytrace.BackgroundFunc {
-	return func() raytrace.ColorVector {
+	return func(ray *raytrace.Ray) raytrace.ColorVector {
 		return raytrace.NewColorVector(0.1, 0.1, 0.1)
 	}
 }

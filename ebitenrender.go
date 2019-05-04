@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"path/filepath"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
@@ -12,48 +13,62 @@ import (
 )
 
 type ebitenRender struct {
-	offscreen   *ebiten.Image
-	pixelBuffer *raytrace.PixelBuffer
-	screenScale float64
+	offscreen      *ebiten.Image
+	pixelBuffer    *raytrace.PixelBuffer
+	screenScale    float64
+	outputFilePath string
+	showFps        bool
 }
 
-func newEbitenRender(imageWidth int, imageHeight int, screenScale float64) *ebitenRender {
+func newEbitenRender(imageWidth int, imageHeight int, screenScale float64, outputFilePath string, showFps bool) *ebitenRender {
 	rand.Seed(time.Now().UnixNano())
 	offscreen, _ := ebiten.NewImage(imageWidth, imageHeight, ebiten.FilterDefault)
 	var pixelBuffer = raytrace.NewPixelBuffer(imageWidth, imageHeight)
 
-	return &ebitenRender{offscreen, pixelBuffer, screenScale}
+	return &ebitenRender{offscreen, pixelBuffer, screenScale, outputFilePath, showFps}
 }
 
 func (er *ebitenRender) update(screen *ebiten.Image) error {
 	ebImg, _ := ebiten.NewImageFromImage(er.pixelBuffer.GetImage(), ebiten.FilterDefault)
 
-	// fmt.Printf("%v\n", er.pixelBuffer.GetImage().At(0, 0))
-
-	// todo: get rid of offscreen?
-	er.offscreen.DrawImage(ebImg, nil)
-
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
 
-	screen.DrawImage(er.offscreen, nil)
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.CurrentTPS()))
+	screen.DrawImage(ebImg, nil)
+
+	if er.showFps {
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.CurrentTPS()))
+	}
+
 	return nil
 }
 
-func (er *ebitenRender) startDisplay() {
-	if err := ebiten.Run(er.update, er.pixelBuffer.Width(), er.pixelBuffer.Height(), er.screenScale, "Zubes Ray Tracer"); err != nil {
+func (er *ebitenRender) StartDisplay(windowTitle string) {
+	ebiten.SetRunnableInBackground(true)
+	if err := ebiten.Run(er.update, er.pixelBuffer.Width(), er.pixelBuffer.Height(), er.screenScale, windowTitle); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (er *ebitenRender) doRender(rayTracer raytrace.RayTracer, renderConfig *raytrace.RenderConfig, scene raytrace.Scene) {
-
+func (er *ebitenRender) DoRender(rayTracer raytrace.RayTracer, renderConfig *raytrace.RenderConfig, scene raytrace.Scene, imageOutputFilename string) {
 	var render = raytrace.NewRenderer(renderConfig)
+
+	fmt.Printf("Rendering for %v started at: %v\n", imageOutputFilename, time.Now())
 	render.Render(rayTracer, er.pixelBuffer, scene, renderConfig)
-	outFilePath := "/home/mzuber/zgo_out.png"
+	outFilePath := filepath.Join(er.outputFilePath, imageOutputFilename)
 	fmt.Printf("Saving image to %v ", outFilePath)
 	er.pixelBuffer.SavePng(outFilePath)
 	fmt.Println("...done")
+}
+
+type SceneInfo struct {
+	scene               raytrace.Scene
+	imageOutputFilename string
+}
+
+func (er *ebitenRender) DoRenderMulti(rayTracer raytrace.RayTracer, renderConfig *raytrace.RenderConfig, sceneInfos []SceneInfo) {
+	for _, si := range sceneInfos {
+		er.DoRender(rayTracer, renderConfig, si.scene, si.imageOutputFilename)
+	}
 }

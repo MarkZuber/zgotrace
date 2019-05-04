@@ -2,9 +2,12 @@ package raytrace
 
 import (
 	"image"
+	"image/draw"
+	"image/jpeg"
 	"image/png"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 type PixelBuffer struct {
@@ -17,6 +20,34 @@ type PixelBuffer struct {
 func NewPixelBuffer(width int, height int) *PixelBuffer {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	return &PixelBuffer{width, height, true, img}
+}
+
+func LoadPixelBuffer(imagePath string) *PixelBuffer {
+
+	f, _ := os.Open(imagePath)
+	defer f.Close()
+
+	var img image.Image
+	var err error
+
+	if filepath.Ext(imagePath) == ".jpg" {
+		img, err = jpeg.Decode(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if filepath.Ext(imagePath) == ".png" {
+		img, err = jpeg.Decode(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Fatal("Unknown file extension")
+	}
+
+	rgba := image.NewRGBA(img.Bounds())
+	draw.Draw(rgba, rgba.Bounds(), img, image.Point{0, 0}, draw.Src)
+
+	return &PixelBuffer{img.Bounds().Max.X, img.Bounds().Max.Y, false, rgba}
 }
 
 func (buf *PixelBuffer) Width() int {
