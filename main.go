@@ -14,7 +14,7 @@ func main() {
 	kingpin.Parse()
 	// fmt.Printf("%v\n", *verbose)
 
-	ebRen := newEbitenRender(800, 600, 2.0)
+	ebRen := newEbitenRender(600, 600, 2.0)
 
 	isTwoPhase := true
 	maxDepth := 50
@@ -22,7 +22,8 @@ func main() {
 
 	var renderConfig = raytrace.NewRenderConfig(maxDepth, numSamplesPerPixel, isTwoPhase)
 	// var scene = scenes.CreateCornellBoxScene()
-	var scene = scenes.CreateManySpheresScene()
+	var scene = scenes.CreateCornellBoxWithSmokeScene()
+	// var scene = scenes.CreateManySpheresScene()
 	var rayTracer = raytrace.NewMonteCarloTracer()
 
 	go ebRen.doRender(rayTracer, renderConfig, scene)
