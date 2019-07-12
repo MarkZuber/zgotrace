@@ -2,12 +2,20 @@ package main
 
 import (
 	"fmt"
+	"go/build"
 	"log"
 	"os"
 
 	"github.com/markzuber/zgotrace/raytrace"
 	"github.com/markzuber/zgotrace/raytrace/scenes"
 	"gopkg.in/alecthomas/kingpin.v2"
+
+	"math/rand"
+	"path/filepath"
+	"time"
+
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 var (
@@ -23,6 +31,17 @@ var (
 	displayScale = kingpin.Flag("displayscale", "Scale from image to screen").Default("2.0").Float64()
 )
 
+// importPathToDir resolves the absolute path from importPath.
+// There doesn't need to be a valid Go package inside that import path,
+// but the directory must exist.
+func importPathToDir(importPath string) (string, error) {
+	p, err := build.Import(importPath, "", build.FindOnly)
+	if err != nil {
+		return "", err
+	}
+	return p.Dir, nil
+}
+
 // Set the working directory to the root of Go package, so that its assets can be accessed.
 func init() {
 	dir, err := importPathToDir("github.com/markzuber/zgotrace/images")
@@ -32,6 +51,67 @@ func init() {
 	err = os.Chdir(dir)
 	if err != nil {
 		log.Panicln("os.Chdir:", err)
+	}
+}
+
+type ebitenRender struct {
+	offscreen      *ebiten.Image
+	pixelBuffer    *raytrace.PixelBuffer
+	screenScale    float64
+	outputFilePath string
+	showFps        bool
+}
+
+func newEbitenRender(imageWidth int, imageHeight int, screenScale float64, outputFilePath string, showFps bool) *ebitenRender {
+	rand.Seed(time.Now().UnixNano())
+	offscreen, _ := ebiten.NewImage(imageWidth, imageHeight, ebiten.FilterDefault)
+	var pixelBuffer = raytrace.NewPixelBuffer(imageWidth, imageHeight)
+
+	return &ebitenRender{offscreen, pixelBuffer, screenScale, outputFilePath, showFps}
+}
+
+func (er *ebitenRender) update(screen *ebiten.Image) error {
+	ebImg, _ := ebiten.NewImageFromImage(er.pixelBuffer.GetImage(), ebiten.FilterDefault)
+
+	if ebiten.IsDrawingSkipped() {
+		return nil
+	}
+
+	screen.DrawImage(ebImg, nil)
+
+	if er.showFps {
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.CurrentTPS()))
+	}
+
+	return nil
+}
+
+func (er *ebitenRender) StartDisplay(windowTitle string) {
+	ebiten.SetRunnableInBackground(true)
+	if err := ebiten.Run(er.update, er.pixelBuffer.Width(), er.pixelBuffer.Height(), er.screenScale, windowTitle); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (er *ebitenRender) DoRender(rayTracer raytrace.RayTracer, renderConfig *raytrace.RenderConfig, scene raytrace.Scene, imageOutputFilename string) {
+	var render = raytrace.NewRenderer(renderConfig)
+
+	fmt.Printf("Rendering for %v started at: %v\n", imageOutputFilename, time.Now())
+	render.Render(rayTracer, er.pixelBuffer, scene, renderConfig)
+	outFilePath := filepath.Join(er.outputFilePath, imageOutputFilename)
+	fmt.Printf("Saving image to %v ", outFilePath)
+	er.pixelBuffer.SavePng(outFilePath)
+	fmt.Println("...done")
+}
+
+type SceneInfo struct {
+	scene               raytrace.Scene
+	imageOutputFilename string
+}
+
+func (er *ebitenRender) DoRenderMulti(rayTracer raytrace.RayTracer, renderConfig *raytrace.RenderConfig, sceneInfos []SceneInfo) {
+	for _, si := range sceneInfos {
+		er.DoRender(rayTracer, renderConfig, si.scene, si.imageOutputFilename)
 	}
 }
 
