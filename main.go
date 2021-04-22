@@ -5,6 +5,7 @@ import (
 	"go/build"
 	"log"
 	"os"
+	"path"
 
 	"github.com/markzuber/zgotrace/raytrace"
 	"github.com/markzuber/zgotrace/raytrace/scenes"
@@ -19,7 +20,6 @@ import (
 )
 
 var (
-	verbose   = kingpin.Flag("debug", "Enable debug mode.").Short('v').Bool()
 	outputDir = kingpin.Flag("outpath", "Output file path.").Short('o').ExistingDir()
 	showfps   = kingpin.Flag("showfps", "Show FPS").Short('f').Bool()
 
@@ -28,7 +28,7 @@ var (
 	numSamples   = kingpin.Flag("numsamples", "Num samples per pixel").Default("10").Int()
 	imageWidth   = kingpin.Flag("imagewidth", "Width of image").Default("300").Int()
 	imageHeight  = kingpin.Flag("imageHeight", "Height of image").Default("300").Int()
-	displayScale = kingpin.Flag("displayscale", "Scale from image to screen").Default("2.0").Float64()
+	displayScale = kingpin.Flag("displayscale", "Scale from image to screen").Default("2").Int()
 )
 
 // importPathToDir resolves the absolute path from importPath.
@@ -44,10 +44,11 @@ func importPathToDir(importPath string) (string, error) {
 
 // Set the working directory to the root of Go package, so that its assets can be accessed.
 func init() {
-	dir, err := importPathToDir("github.com/markzuber/zgotrace/images")
+	dir, err := importPathToDir("github.com/markzuber/zgotrace")
 	if err != nil {
 		log.Fatalln("Unable to find Go package in your GOPATH, it's needed to load assets:", err)
 	}
+	dir = path.Join(dir, "images")
 	err = os.Chdir(dir)
 	if err != nil {
 		log.Panicln("os.Chdir:", err)
@@ -57,12 +58,12 @@ func init() {
 type ebitenRender struct {
 	offscreen      *ebiten.Image
 	pixelBuffer    *raytrace.PixelBuffer
-	screenScale    float64
+	screenScale    int
 	outputFilePath string
 	showFps        bool
 }
 
-func newEbitenRender(imageWidth int, imageHeight int, screenScale float64, outputFilePath string, showFps bool) *ebitenRender {
+func newEbitenRender(imageWidth int, imageHeight int, screenScale int, outputFilePath string, showFps bool) *ebitenRender {
 	rand.Seed(time.Now().UnixNano())
 	offscreen, _ := ebiten.NewImage(imageWidth, imageHeight, ebiten.FilterDefault)
 	var pixelBuffer = raytrace.NewPixelBuffer(imageWidth, imageHeight)
@@ -70,7 +71,7 @@ func newEbitenRender(imageWidth int, imageHeight int, screenScale float64, outpu
 	return &ebitenRender{offscreen, pixelBuffer, screenScale, outputFilePath, showFps}
 }
 
-func (er *ebitenRender) update(screen *ebiten.Image) error {
+func (er *ebitenRender) Update(screen *ebiten.Image) error {
 	ebImg, _ := ebiten.NewImageFromImage(er.pixelBuffer.GetImage(), ebiten.FilterDefault)
 
 	if ebiten.IsDrawingSkipped() {
@@ -86,9 +87,19 @@ func (er *ebitenRender) update(screen *ebiten.Image) error {
 	return nil
 }
 
+func (er *ebitenRender) Draw(screen *ebiten.Image) error {
+	return nil
+}
+
+func (er *ebitenRender) Layout(outsideWidth int, outsideHeight int) (screenWidth, screenHeight int) {
+	return er.pixelBuffer.Width(), er.pixelBuffer.Height()
+}
+
 func (er *ebitenRender) StartDisplay(windowTitle string) {
-	ebiten.SetRunnableInBackground(true)
-	if err := ebiten.Run(er.update, er.pixelBuffer.Width(), er.pixelBuffer.Height(), er.screenScale, windowTitle); err != nil {
+	ebiten.SetRunnableOnUnfocused(true)
+	ebiten.SetWindowTitle(windowTitle)
+	ebiten.SetWindowSize(er.pixelBuffer.Width()*er.screenScale, er.pixelBuffer.Height()*er.screenScale)
+	if err := ebiten.RunGame(er); err != nil {
 		log.Fatal(err)
 	}
 }
